@@ -36,5 +36,41 @@ export class AuthService {
         }
 
     }
+    async login(user: User) {
+        const userAuthenicated = await this.userRepository.find({ email: user.email });
+        const doMatch = await bcrypt.compare(
+            user.password,
+            userAuthenicated[0].password,
+        );
+
+        console.log(userAuthenicated)
+        console.log(doMatch)
+
+        if (doMatch == false) {
+            const res = response.status(404);
+            return res;
+        } else if (doMatch == true) {
+            const userAuthenicatedInfo = {
+                id: userAuthenicated[0]._id,
+                firstname: userAuthenicated[0].firstname,
+                lastname: userAuthenicated[0].lastname,
+                email: userAuthenicated[0].email,
+                token: jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+                    expiresIn: '30d',
+                })
+            };
+            return userAuthenicatedInfo;
+        } else {
+            const res = response.status(500);
+            return res;
+        }
+
+    }
+    async getAllUserData(){
+        return await this.userRepository.find();
+    }
+    
+    
 }
+
 
